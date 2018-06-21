@@ -7,3 +7,5 @@ app = Flask(__name__)
 def hello():
     print(request.get_json())
     return "", 200
+
+app.run(host='0.0.0.0', port="80")
