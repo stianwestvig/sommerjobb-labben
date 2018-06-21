@@ -1,0 +1,6 @@
+host = ""
+root_ca_path = ""
+certificate_path = ""
+private_key_path = ""
+client_id = ""
+topic = ""
