@@ -1,0 +1,1 @@
+const char PIN[] = "";      //fill in PIN-code

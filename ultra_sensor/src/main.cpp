@@ -1,17 +1,23 @@
 #include <Arduino.h>
 #include <MKRGSM.h>
+#include <config.h>
+#include <DHT.h>
+
+
+
+
 
 const int id = 1;
 
 const int echoPin = 8;
 const int triggerPin = 7;
+const int DHT11_PIN = 5; 
 
 
 // APN data
 const char GPRS_APN[]      = "com4";
 const char GPRS_LOGIN[]    = "";
 const char GPRS_PASSWORD[] = "";
-const char PIN[] = "0579";
 
 
 // URL, path and port (for example: arduino.cc)
@@ -24,10 +30,13 @@ GSMClient client;
 GPRS gprs;
 GSM gsmAccess;
 
+DHT dht; 
 
 
-void post(float val) {
-  String json = String("{\"value\":" + String(val) + "}");
+
+void post(float distance, float temp, float humidity) {
+  String json = String("{\"distance\":" + String(distance) + ", \"temp\":" + String(temp) + ", \"humidity\":" + String(humidity)+"}");
+  Serial.println(json);
   if (client.connect(server, port)){
       Serial.println("connected");
     client.println("POST / HTTP/1.1");
@@ -61,6 +70,8 @@ void setup() {
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  dht.setup(5);
+
 
   Serial.println("Starting Arduino web client.");
   digitalWrite(LED_BUILTIN, HIGH);
@@ -92,6 +103,18 @@ void setup() {
 
 
 void loop() {
+  delay(dht.getMinimumSamplingPeriod());
+
+  float humidity = dht.getHumidity();
+  float temperature = dht.getTemperature();
+/*
+  Serial.print(dht.getStatusString());
+  Serial.print("\t");
+  Serial.print(humidity, 1);
+  Serial.print("\t\t");
+  Serial.print(temperature, 1);
+  Serial.print("\t\t");
+  Serial.println(dht.toFahrenheit(temperature), 1);*/
 
   // Gjør ekkokallet
   digitalWrite(triggerPin, LOW);
@@ -105,24 +128,7 @@ void loop() {
   long duration = pulseIn(echoPin, HIGH);
   // Regn ut avstanden
   float distance = duration * 0.00017;
-  post(distance);
+  post(distance, temperature, humidity);
   delay(5000);
 
-    // if there are incoming bytes available
-  // from the server, read them and print them:
-//  if (client.available()) {
-  //  char c = client.read();
-    //Serial.print(c);
-//  }
-
-  // if the server's disconnected, stop the client:
-//  if (!client.available() && !client.connected()) {
-    //Serial.println();
-    //Serial.println("disconnecting.");
-  //  client.stop();
-
-    // do nothing forevermore:
-  //  for (;;)
-    //  ;
-  //}
 }
