@@ -26,14 +26,15 @@ GSMClient client;
 GPRS gprs;
 GSM gsmAccess;
 DHT dht; 
-
+int counter = 0; 
 
 void post(float distance, float temp, float humidity) {
+  counter ++; 
 
-  String json = String("{\"distance\":" + String(distance) + ", \"temp\":" + String(temp) + ", \"humidity\":" + String(humidity)+"}");
+  String json = String("{\"distance\":" + String(distance) + ", \"temp\":" + String(temp) + ", \"humidity\":" + String(humidity) + ", \"no\": " + String(counter) + "}");
   Serial.println(json);
 
-  if (client.connected()){
+  if (client.connect(server, port)){
     client.println("POST / HTTP/1.1");
     client.print("Host: ");
     client.println(server);
@@ -45,8 +46,10 @@ void post(float distance, float temp, float humidity) {
     client.println();
     client.println(json);
     } else {
+      Serial.println("Reconnecting");
       client.connect(server, port);
     }
+    client.stop();
 }
 
 
@@ -81,8 +84,6 @@ void setup() {
   Serial.println("Connected to GSM");
   digitalWrite(LED_BUILTIN, LOW);
 
-  //connecting to server
-  client.connect(server, port);
 }
 
 
@@ -105,6 +106,4 @@ void loop() {
 
   //Post data to server
   post(distance, temperature, humidity);
-  delay(5000);
-
 }
