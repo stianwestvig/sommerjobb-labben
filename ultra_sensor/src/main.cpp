@@ -8,6 +8,7 @@
 const int echoPin = 8;
 const int triggerPin = 7;
 const int DHT11_PIN = 5; 
+const int vibPin = 4; 
 
 
 // APN data
@@ -28,10 +29,10 @@ GSM gsmAccess;
 DHT dht; 
 int counter = 0; 
 
-void post(float distance, float temp, float humidity) {
+void post(float distance, float temp, float humidity, int vib) {
   counter ++; 
 
-  String json = String("{\"distance\":" + String(distance) + ", \"temp\":" + String(temp) + ", \"humidity\":" + String(humidity) + ", \"no\": " + String(counter) + "}");
+  String json = String("{\"distance\":" + String(distance) + ", \"temp\":" + String(temp) + ", \"humidity\":" + String(humidity) + ", \"vib\": "+ String(vib) +", \"no\": " + String(counter) + "}");
   Serial.println(json);
 
   if (client.connect(server, port)){
@@ -65,10 +66,13 @@ void setup() {
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  dht.setup(5);
-  Serial.println("Starting Arduino web client.");
+  dht.setup(DHT11_PIN);
+  pinMode(vibPin,INPUT);//set pin2 as INPUT
+  digitalWrite(vibPin, HIGH);//set pin2 as HIGH
   digitalWrite(LED_BUILTIN, HIGH);
-  
+
+
+  Serial.println("Starting Arduino web client.");
   
   //connect to GSM
   boolean connected = false;
@@ -94,6 +98,7 @@ void loop() {
   delay(dht.getMinimumSamplingPeriod());
   float humidity = dht.getHumidity();
   float temperature = dht.getTemperature();
+  Serial.println(humidity);
 
   // Distance sensor
   digitalWrite(triggerPin, LOW);
@@ -104,6 +109,13 @@ void loop() {
   long duration = pulseIn(echoPin, HIGH);
   float distance = duration * 0.00017;
 
+  //vibration sensor 
+  int digitalVib = digitalRead(vibPin);//Read the value of pin2
+
+
   //Post data to server
-  post(distance, temperature, humidity);
+  post(distance, temperature, humidity, digitalVib);
 }
+
+
+ 
